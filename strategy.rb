@@ -1,22 +1,20 @@
-# Game Info
-# 
-# board -- the game board
-#   See: https://github.com/carbonfive/kablammo-strategy/blob/master/lib/strategy/models/board.rb
-# robot -- you
-#   See: https://github.com/carbonfive/kablammo-strategy/blob/master/lib/strategy/models/robot.rb
-# opponents -- opponent robots
-#   See: https://github.com/carbonfive/kablammo-strategy/blob/master/lib/strategy/models/robot.rb
-# 
-# Actions:
-# 
-# fire!(skew=0) -- shot at something
-# rotate!(degrees) -- rotate the turret
-# rest -- rest and reload
-# move_north! -- move north
-# move_south! -- move south
-# move_east! -- move east
-# move_west! -- move west
+require './lib/aggressive'
+require './lib/defensive'
+
+extend Aggressive
+extend Defensive
 
 on_turn do
-  fire!
+  safe_attack
+end
+
+def safe_attack
+  enemy = opponents.first
+  return hunt unless enemy
+  return move_away_from! enemy if my.ammo == 0 && can_fire_at? enemy
+  return rest if my.ammo == 0
+  return fire_at! enemy, 0.75 if can_fire_at? enemy
+  return aim_at! enemy unless aiming_at? enemy
+  return move_away_from! enemy if my.armor < 3
+  move_towards! enemy
 end
